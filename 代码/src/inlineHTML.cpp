@@ -79,6 +79,9 @@ const char *html = R"+*(
         document.getElementById("nDataDisplay").innerHTML = valNData;
       }
       function downloadData() {
+        window.open("/download");
+      }
+      function clearData() {
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function () {
           if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
@@ -86,7 +89,7 @@ const char *html = R"+*(
               xmlhttp.responseText;
           }
         };
-        xmlhttp.open("GET", "download", true);
+        xmlhttp.open("GET", "clr", true);
         xmlhttp.send();
       }
     </script>
@@ -135,6 +138,7 @@ const char *html = R"+*(
     />
     <span id="nDataDisplay">100</span><br />
     <input type="button" value="下载温度数据" onclick="downloadData()" /><br />
+    <input type="button" value="清空所有数据" onclick="clearData()" /><br />
     <span id="response"></span>
   </body>
 </html>
