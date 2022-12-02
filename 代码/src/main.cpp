@@ -18,14 +18,14 @@ ticks redLEDTick;
 ticks dhtReadInterval = 5000;
 ticks redLEDInterval = 3000;
 int nMaxData = 100;
-std::deque<TempAndHumidity> dataList;
+std::deque<std::pair<TempAndHumidity, ticks>> dataList;
 bool requestOLEDRefresh = true;
 bool useOLED = true;
 bool lastUseOLED = true;
 auto timerKillBlueLED = timerBegin(0, 8000, true);
 auto timerKillRedLED = timerBegin(1, 8000, true);
 
-void refreshOLED();
+void refreshOLEDBuf();
 void setup()
 {
 
@@ -74,7 +74,7 @@ void loop()
   {
     oled.setPowerSave(false);
     lastUseOLED = true;
-    refreshOLED();
+    refreshOLEDBuf();
   }
 
 #ifndef DISABLE_DHT11
@@ -84,14 +84,14 @@ void loop()
     TempAndHumidity data = dht11.getTempAndHumidity();
     if (dataList.size() >= nMaxData)
       dataList.pop_front();
-    dataList.push_back(data);
+    dataList.push_back({data, dhtTick});
     Serial.println(dataList.size());
     digitalWrite(BlueLED, LOW);
     timerRestart(timerKillBlueLED);
     timerAlarmEnable(timerKillBlueLED);
 #ifndef DISABLE_OLED
     if (useOLED)
-      refreshOLED();
+      refreshOLEDBuf();
 #endif
   }
 #endif
@@ -107,29 +107,23 @@ void loop()
     }
   }
   if (useOLED && requestOLEDRefresh)
-    refreshOLED();
-  delay(20);
+    refreshOLEDBuf();
 }
-
-void refreshOLED()
+void refreshOLEDBuf()
 {
   requestOLEDRefresh = false;
-  oled.firstPage();
-  do
+  oled.clearBuffer();
+  if (!dataList.empty())
   {
-    if (!dataList.empty())
-    {
-      oled.setCursor(16, 16);
-      oled.print("Tem:");
-      oled.print(dataList.back().temperature);
-      oled.print(" Deg");
-      oled.setCursor(16, 32);
-      oled.print("Hum:");
-      oled.print(dataList.back().humidity);
-      oled.print("%RH");
-    }
-    oled.setCursor(16, 48);
-    oled.print("Items: ");
-    oled.print(dataList.size());
-  } while (oled.nextPage());
+    oled.drawStr(0, 16, "Tem:");
+    oled.drawStr(0 + 4 * 10, 16, String(dataList.back().first.temperature).c_str());
+    oled.drawStr(0 + 4 * 10, 16, String(dataList.back().first.temperature).c_str());
+    oled.drawStr(0 + 8 * 10, 16, " Deg");
+    oled.drawStr(0, 32, "Hum:");
+    oled.drawStr(0 + 4 * 10, 32, String(dataList.back().first.humidity).c_str());
+    oled.drawStr(0 + 8 * 10, 32, " %RH");
+  }
+  oled.drawStr(0, 48, "Items:");
+  oled.drawStr(0 + 5 * 10, 48, String(dataList.size()).c_str());
+  oled.sendBuffer();
 }
