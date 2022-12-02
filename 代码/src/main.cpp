@@ -17,6 +17,7 @@ ticks oledTick;
 ticks redLEDTick;
 ticks dhtReadInterval = 5000;
 ticks redLEDInterval = 3000;
+ticks beginTime;
 int nMaxData = 100;
 std::deque<std::pair<TempAndHumidity, ticks>> dataList;
 bool requestOLEDRefresh = true;
@@ -44,7 +45,7 @@ void setup()
   oled.begin();
   oled.setFont(u8g2_font_ncenB10_tr);
 #endif
-  dhtTick = oledTick = redLEDTick = millis();
+  dhtTick = oledTick = redLEDTick = beginTime = millis();
 
   timerAttachInterrupt(
       timerKillBlueLED, []()
@@ -115,15 +116,12 @@ void refreshOLEDBuf()
   oled.clearBuffer();
   if (!dataList.empty())
   {
-    oled.drawStr(0, 16, "Tem:");
-    oled.drawStr(0 + 4 * 10, 16, String(dataList.back().first.temperature).c_str());
-    oled.drawStr(0 + 4 * 10, 16, String(dataList.back().first.temperature).c_str());
-    oled.drawStr(0 + 8 * 10, 16, " Deg");
-    oled.drawStr(0, 32, "Hum:");
-    oled.drawStr(0 + 4 * 10, 32, String(dataList.back().first.humidity).c_str());
-    oled.drawStr(0 + 8 * 10, 32, " %RH");
+    oled.drawStr(0, 16, ("Tem:" + String(dataList.back().first.temperature) + " Deg").c_str());
+    oled.drawStr(0, 32, ("Hum:" + String(dataList.back().first.humidity) + " %RH").c_str());
   }
   oled.drawStr(0, 48, "Items:");
-  oled.drawStr(0 + 5 * 10, 48, String(dataList.size()).c_str());
+  oled.drawStr(0 + 5 * 10, 48, (String(dataList.size()) + "/" + String(nMaxData).c_str()).c_str());
+  ticks displayTime = (millis() - beginTime) / 1000;
+  oled.drawStr(0, 64, ((displayTime / (60 * 60)) + String("h") + (displayTime % (60 * 60)) / (60) + "m" + (displayTime % 60) + "s").c_str());
   oled.sendBuffer();
 }
