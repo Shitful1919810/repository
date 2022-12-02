@@ -69,6 +69,8 @@ void handleWeb()
                                 dataList.pop_front();
                             client.print("DHT11 data is removed");
                             extern bool requestOLEDRefresh;
+                            extern ticks beginTime;
+                            beginTime = millis();
                             requestOLEDRefresh = true;
                         }
                         else if (quest.startsWith("/itv"))
