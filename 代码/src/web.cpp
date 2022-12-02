@@ -64,7 +64,7 @@ void handleWeb()
                         }
                         else if (quest == "/clr")
                         {
-                            extern std::deque<TempAndHumidity> dataList;
+                            extern std::deque<std::pair<TempAndHumidity, ticks>> dataList;
                             while (!dataList.empty())
                                 dataList.pop_front();
                             client.print("DHT11 data is removed");
@@ -94,7 +94,7 @@ void handleWeb()
                             }
                             else
                             {
-                                extern std::deque<TempAndHumidity> dataList;
+                                extern std::deque<std::pair<TempAndHumidity, ticks>> dataList;
                                 extern bool requestOLEDRefresh;
                                 requestOLEDRefresh = true;
                                 extern int nMaxData;
@@ -120,18 +120,20 @@ void handleWeb()
                         }
                         else if (quest == "/download")
                         {
-                            extern std::deque<TempAndHumidity> dataList;
+                            extern std::deque<std::pair<TempAndHumidity, ticks>> dataList;
                             String json = "{\n  \"size\" : ";
                             json += dataList.size();
                             json += ",\n  \"DHT11Data\" : [\n";
                             int cur = 0;
-                            for (const TempAndHumidity &data : dataList)
+                            for (const auto &data : dataList)
                             {
                                 ++cur;
                                 String item = "    [";
-                                item += data.humidity;
+                                item += data.first.humidity;
                                 item += ", ";
-                                item += data.temperature;
+                                item += data.first.temperature;
+                                item += ", ";
+                                item += data.second;
                                 if (cur == dataList.size())
                                     item += "]\n";
                                 else
