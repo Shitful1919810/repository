@@ -62,6 +62,15 @@ void handleWeb()
                             useOLED = !useOLED;
                             client.print(String("OLED is now ") + (useOLED ? "ON" : "OFF"));
                         }
+                        else if (quest == "/clr")
+                        {
+                            extern std::deque<TempAndHumidity> dataList;
+                            while (!dataList.empty())
+                                dataList.pop_front();
+                            client.print("DHT11 data is removed");
+                            extern bool requestOLEDRefresh;
+                            requestOLEDRefresh = true;
+                        }
                         else if (quest.startsWith("/itv"))
                         {
                             int value = quest.substring(4, quest.length()).toInt();
@@ -112,13 +121,25 @@ void handleWeb()
                         else if (quest == "/download")
                         {
                             extern std::deque<TempAndHumidity> dataList;
-                            client.print(dataList.size());
-                            client.print("<br>");
+                            String json = "{\n  \"size\" : ";
+                            json += dataList.size();
+                            json += ",\n  \"DHT11Data\" : [\n";
+                            int cur = 0;
                             for (const TempAndHumidity &data : dataList)
                             {
-                                client.print(data.humidity + String(" ") + data.temperature);
-                                client.print("<br>");
+                                ++cur;
+                                String item = "    [";
+                                item += data.humidity;
+                                item += ", ";
+                                item += data.temperature;
+                                if (cur == dataList.size())
+                                    item += "]\n";
+                                else
+                                    item += "],\n";
+                                json += item;
                             }
+                            json += "  ]\n}";
+                            client.print(json);
                         }
                         else
                         {
