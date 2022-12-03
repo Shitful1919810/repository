@@ -62,6 +62,20 @@ void handleWeb()
                             useOLED = !useOLED;
                             client.print(String("OLED is now ") + (useOLED ? "ON" : "OFF"));
                         }
+                        else if (quest == "/sta")
+                        {
+                            extern ticks dhtReadInterval;
+                            extern ticks redLEDInterval;
+                            extern int nMaxData;
+                            unsigned long displayDhtInt;
+                            if (dhtReadInterval <= 60 * 1000)
+                                displayDhtInt = dhtReadInterval;
+                            else if (dhtReadInterval <= 60 * 60 * 1000)
+                                displayDhtInt = dhtReadInterval / 60 + 60 * 1000;
+                            else
+                                displayDhtInt = dhtReadInterval / 3600 + 120 * 1000;
+                            client.print(String(redLEDInterval) + " " + displayDhtInt + " " + nMaxData);
+                        }
                         else if (quest == "/clr")
                         {
                             extern std::deque<std::pair<TempAndHumidity, ticks>> dataList;
